@@ -11,23 +11,26 @@
   var Point = com.dgsprb.quick.Point;
   var Text = com.dgsprb.quick.Text;
 
+	
+  var totalScore = 0;
+  var score = new Text('score ' + totalScore);
+  var barLevel;
+
 	// functions
 	function main() {
 		Quick.setName("Fighter Champion");
 		Quick.init(function () { return new GameScene() });
 	}
 
-	// class GameScene extends Scene
-  var totalScore = 0;
-  var score = new Text('score ' + totalScore);
-  
-  
+  // class GameScene extends Scene
 	var GameScene = (function () {
 
 		function GameScene() {
 			Scene.call(this);
+      
 			var background = new Background();
 			this.add(background);
+      
 			var player = new Player();
 			this.add(player);
       
@@ -45,8 +48,14 @@
       score.setPosition(point);
       this.add(score);
       
-      var mother = new Mother();
-      this.add(mother);
+      var planet = new Planet();
+      this.add(planet);
+      
+      var bar = new Bar();
+      this.add(bar);
+      
+      barLevel = new BarLevel()
+      this.add(barLevel);
       
 		}; GameScene.prototype = Object.create(Scene.prototype);
 
@@ -71,6 +80,40 @@
 
 	})();
 
+  // the enery bar
+  var Bar = (function() {
+    function Bar() {
+      GameObject.call(this);
+      
+      this.setImage(document.getElementById('bar'));
+      
+      var point = new Point(20,Quick.getHeight() - 60);
+      this.setPosition(point);
+      
+    }; Bar.prototype = Object.create(GameObject.prototype);
+    
+    return Bar;
+  })();
+  
+  // the energy bar level
+  var BarLevel = (function() {
+    function BarLevel() {
+      GameObject.call(this);
+      
+      this.setImage(document.getElementById('bar-level'));
+      
+      var point = new Point(20,Quick.getHeight() - 60);
+      this.setPosition(point);
+      this.setImageId('bar-level');
+      this.addTag('bar-level');
+      
+      
+    }; BarLevel.prototype = Object.create(GameObject.prototype);
+    
+    return BarLevel;
+  })();
+  
+  // the ship shot
   var Shot = (function() {
     var SPEED = 8;
     
@@ -106,6 +149,7 @@
       var point = new Point(Quick.getRight(),Quick.random(Quick.getBottom()-20));
       this.setPosition(point);
 			this.setSpeedX(-SPEED);
+      this.addTag('enemy');
       this.setBoundary(Quick.getBoundary());
 			
     }; Enemy.prototype = Object.create(GameObject.prototype);
@@ -140,9 +184,9 @@
     return Enemy;
   })();  
   
-  // class mother ship
-  var Mother = (function() {
-    function Mother() {
+  // class planet ship
+  var Planet = (function() {
+    function Planet() {
       GameObject.call(this);
       
       this.setImage(document.getElementById('planet'));
@@ -154,15 +198,23 @@
       var point = new Point(0,0);
       this.setPosition(point);
       
-    }; Mother.prototype = Object.create(GameObject.prototype);
+    }; Planet.prototype = Object.create(GameObject.prototype);
     
-    Mother.prototype.onCollision = function (gameObject) {
+    Planet.prototype.onCollision = function (gameObject) {
 			var collision = this.getCollision(gameObject);
       
-      console.log('planet collision');
+      
+      
+      if(barLevel.getWidth() <= 0) {
+        console.log('====================== GAME OVER!!! ======================');
+      } else {
+        barLevel.increaseWidth(-20);
+      }
+      
+      console.log('planet collision', gameObject);
     }
     
-    return Mother;
+    return Planet;
   })();
   
   
@@ -192,8 +244,10 @@
       */
       
 			if (this.controller.keyDown(CommandEnum.UP) && this.getTop() > 0) {
-				this.moveY(-SPEED);
+				this.setImage(document.getElementById('ship-top'));
+        this.moveY(-SPEED);
 			} else if (this.controller.keyDown(CommandEnum.DOWN) && this.getBottom() < Quick.getHeight()) {
+      this.setImage(document.getElementById('ship-bottom'));
 				this.moveY(SPEED);
 			}
       
